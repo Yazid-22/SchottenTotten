@@ -6,7 +6,7 @@ import java.util.List;
 public class Borne {
     private List<Carte> cartesJ1;
     private List<Carte> cartesJ2;
-    private int premierACompleter; // -1 par défaut, 0 pour J1, 1 pour J2
+    private int premierACompleter; // -1 : personne, 0 : J1 en premier, 1 : J2 en premier
     private Joueur proprietaire;
 
     public Borne() {
@@ -23,18 +23,43 @@ public class Borne {
         }
         cote.add(c);
 
-        // Si ce joueur atteint 3 cartes et que personne ne l'avait encore fait
         if (cote.size() == 3 && premierACompleter == -1) {
             premierACompleter = j;
         }
     }
 
-    public Joueur getProprietaire() {
+    public boolean estPleine() {
+        return cartesJ1.size() == 3 && cartesJ2.size() == 3;
+    }
+
+    // Résout la borne entre J1 (index 0) et J2 (index 1), retourne le gagnant ou null si égalité non départageable
+    public Joueur evaluerEtAttribuer(Joueur j1, Joueur j2) {
+        if (!estPleine()) {
+            return null; // On ne peut revendiquer que si les deux côtés ont 3 cartes
+        }
+
+        Combinaison combJ1 = new Combinaison(cartesJ1);
+        Combinaison combJ2 = new Combinaison(cartesJ2);
+
+        int comparaison = combJ1.compareTo(combJ2);
+
+        if (comparaison > 0) {
+            proprietaire = j1;
+        } else if (comparaison < 0) {
+            proprietaire = j2;
+        } else {
+            // Égalité parfaite de combinaisons : c'est celui qui a complété sa borne en premier qui gagne
+            if (premierACompleter == 0) {
+                proprietaire = j1;
+            } else if (premierACompleter == 1) {
+                proprietaire = j2;
+            }
+        }
         return proprietaire;
     }
 
-    public void attribuerA(Joueur j) {
-        this.proprietaire = j;
+    public Joueur getProprietaire() {
+        return proprietaire;
     }
 
     public List<Carte> getCartesJ1() {
@@ -43,9 +68,5 @@ public class Borne {
 
     public List<Carte> getCartesJ2() {
         return cartesJ2;
-    }
-
-    public int getPremierACompleter() {
-        return premierACompleter;
     }
 }
